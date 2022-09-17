@@ -40,7 +40,7 @@
 
 	<div class="row">
 		<div class="col-md-8">
-			<h2>Welcome, This is SUKUMAR & SNEGA Private website!!.</h2>
+			<h2>Welcome, This is SUKUMAR & SNEGA Private website!.</h2>
 			<h3>Contact @ +91-9597361516 </h3>
 		</div>	
 	</div>
