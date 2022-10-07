@@ -10,7 +10,7 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 9090
+      targetPort: 9091
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -32,6 +32,6 @@ spec:
    - name: newimage:latest
      image: ssukumar27/newimage
      ports:
-     - containerPort: 9090
+     - containerPort: 9091
 
 ---
