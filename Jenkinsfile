@@ -1,40 +1,44 @@
-node{
-     
-    stage('SCM Checkout'){
-        git url: 'https://github.com/MithunTechnologiesDevOps/java-web-app-docker.git',branch: 'master'
+pipeline{
+    agent any
+    tools {
+        maven 'Maven'
     }
-    
-    stage(" Maven Clean Package"){
-      def mavenHome =  tool name: "Maven-3.5.6", type: "maven"
-      def mavenCMD = "${mavenHome}/bin/mvn"
-      sh "${mavenCMD} clean package"
-      
-    } 
-    
-    
-    stage('Build Docker Image'){
-        sh 'docker build -t dockerhandson/java-web-app .'
-    }
-    
-    stage('Push Docker Image'){
-        withCredentials([string(credentialsId: 'Docker_Hub_Pwd', variable: 'Docker_Hub_Pwd')]) {
-          sh "docker login -u dockerhandson -p ${Docker_Hub_Pwd}"
+    stages {
+        stage('Git Checkout'){
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/ssukumar27/java-web-app-docker.git']]])
+            }
         }
-        sh 'docker push dockerhandson/java-web-app'
-     }
-     
-      stage('Run Docker Image In Dev Server'){
-        
-        def dockerRun = ' docker run  -d -p 8080:8080 --name java-web-app dockerhandson/java-web-app'
-         
-         sshagent(['DOCKER_SERVER']) {
-          sh 'ssh -o StrictHostKeyChecking=no ubuntu@172.31.20.72 docker stop java-web-app || true'
-          sh 'ssh  ubuntu@172.31.20.72 docker rm java-web-app || true'
-          sh 'ssh  ubuntu@172.31.20.72 docker rmi -f  $(docker images -q) || true'
-          sh "ssh  ubuntu@172.31.20.72 ${dockerRun}"
-       }
-       
+        stage('maven build'){
+            steps {
+                sh 'mvn clean install -f pom.xml'
+            }
+        }
+        stage('docker build image'){
+            steps{
+                script {
+                    sh 'sudo docker build -t newimage /var/lib/jenkins/workspace/own'
+                    sh 'sudo docker tag newimage ssukumar27/newimage:latest'
+                    sh 'sudo docker tag newimage ssukumar27/newimage:${BUILD_NUMBER}'
+                }
+            }
+        }
+        stage('login & push to docker'){
+            steps {
+                withCredentials([string(credentialsId: 'docker_hub', variable: 'docker_hub')]) {
+                    sh 'sudo docker login -u ssukumar27 -p ${docker_hub}'
+                }
+                sh 'sudo docker image push ssukumar27/newimage:latest'
+                sh 'sudo docker image push ssukumar27/newimage:${BUILD_NUMBER}'
+            }
+        }
+        stage('Deploy on Kubernetes') {
+            steps {
+                sshagent(['3.86.208.200']) {
+                    sh 'scp -r -o StrictHostKeyChecking=no deployment.yml ubuntu@3.86.208.200:/home/ubuntu'
+                    sh 'ssh ubuntu@3.86.208.200 sudo kubectl apply -f /home/ubuntu/deployment.yml'
+                }
+            }
+        }
     }
-     
-     
 }
