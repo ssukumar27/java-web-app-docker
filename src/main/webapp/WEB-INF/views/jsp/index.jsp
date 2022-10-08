@@ -42,7 +42,7 @@
 		<div class="col-md-8">
 			<h2>Welcome, This is SUKUMAR....</h2>
 			<h3> Contact @ +91-8220661935 </h3>
-			<h4> CICD has been completed successfully </h4>
+			<h4> CICD has been completed successfully.. Thank you!!! </h4>
 		</div>	
 	</div>
 
